@@ -1,0 +1,18 @@
+{
+  "headers": [
+    {
+      "source": "/Build/(.*).br",
+      "headers": [
+        { "key": "Content-Encoding", "value": "br" },
+        { "key": "Content-Type", "value": "application/octet-stream" }
+      ]
+    },
+    {
+        "source": "/Build/(.*).wasm.br",
+        "headers": [
+            { "key": "Content-Encoding", "value": "br" },
+            { "key": "Content-Type", "value": "application/wasm" }
+        ]
+    }
+  ]
+}

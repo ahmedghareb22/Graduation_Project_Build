@@ -1,0 +1,18 @@
+#unity-container {
+  /* حدد العرض اللي يريحك في الصفحة */
+  width: 90%; 
+  max-width: 1020px; /* ده هيخليها متكبرش زيادة عن اللزوم في الشاشات الكبيرة */
+  
+  /* حافظ على النسبة 16:9 */
+  aspect-ratio: 16 / 9; 
+  
+  margin: 20px auto; /* توسيط اللعبة في الصفحة */
+  /* border-radius: 12px; لمسة جمالية للمتحف */
+  /* overflow: hidden; */
+  /* box-shadow: 0 10px 30px rgba(0,0,0,0.3); */
+}
+
+#unity-canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
