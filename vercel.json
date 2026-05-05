@@ -1,18 +1,30 @@
 {
   "headers": [
     {
-      "source": "/Build/(.*).br",
+      "source": "/Build/(.*).unityweb",
       "headers": [
-        { "key": "Content-Encoding", "value": "br" },
-        { "key": "Content-Type", "value": "application/octet-stream" }
+        {
+          "key": "Content-Encoding",
+          "value": "br"
+        },
+        {
+          "key": "Content-Type",
+          "value": "application/octet-stream"
+        }
       ]
     },
     {
-        "source": "/Build/(.*).wasm.br",
-        "headers": [
-            { "key": "Content-Encoding", "value": "br" },
-            { "key": "Content-Type", "value": "application/wasm" }
-        ]
+      "source": "/Build/(.*).wasm.unityweb",
+      "headers": [
+        {
+          "key": "Content-Encoding",
+          "value": "br"
+        },
+        {
+          "key": "Content-Type",
+          "value": "application/wasm"
+        }
+      ]
     }
   ]
 }
