@@ -1,18 +1,25 @@
+/* تنسيق صفحة اللعبة لتملأ الشاشة */
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: #231f20;
+}
+
 #unity-container {
-  /* حدد العرض اللي يريحك في الصفحة */
-  width: 90%; 
-  max-width: 1020px; /* ده هيخليها متكبرش زيادة عن اللزوم في الشاشات الكبيرة */
-  
-  /* حافظ على النسبة 16:9 */
-  aspect-ratio: 16 / 9; 
-  
-  margin: 20px auto; /* توسيط اللعبة في الصفحة */
-  /* border-radius: 12px; لمسة جمالية للمتحف */
-  /* overflow: hidden; */
-  /* box-shadow: 0 10px 30px rgba(0,0,0,0.3); */
+    width: 100% !important;
+    height: 100% !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 #unity-canvas {
-  width: 100% !important;
-  height: 100% !important;
+    width: 100vw !important; /* يأخذ عرض الشاشة بالكامل */
+    height: 56.25vw !important; /* يحافظ على نسبة 16:9 */
+    max-height: 100vh;
+    max-width: 177.78vh; /* يحافظ على النسبة لو الشاشة بالطول */
+    background: #231f20;
 }
