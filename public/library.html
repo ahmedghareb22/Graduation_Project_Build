@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مكتبة الفراعنة | المتحف المصري الافتراضي</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/pocketbase/dist/pocketbase.umd.js"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Amiri:wght@700&family=Noto+Sans+Egyptian+Hieroglyphs&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --gold: #D4AF37;
+            --gold-light: #FFD700;
+            --cyan: #00d4ff;
+            --dark: #050a14;
+            --sandstone: #c2b280;
+        }
+
+        body {
+            background-color: var(--dark);
+            font-family: 'Cairo', sans-serif;
+            color: white;
+            margin: 0;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        .hieroglyph-font {
+            font-family: 'Noto Sans Egyptian Hieroglyphs', sans-serif;
+        }
+
+        .hologram-bg {
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('images/egyptian_temple_holographic_bg_1778194002891.png');
+            background-size: cover;
+            background-position: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+        }
+
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            background-size: 100% 4px, 3px 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: var(--gold);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: drift var(--duration) linear infinite;
+        }
+
+        @keyframes drift {
+            from { transform: translateY(100vh) translateX(0); opacity: 0; }
+            50% { opacity: 0.5; }
+            to { transform: translateY(-10vh) translateX(50px); opacity: 0; }
+        }
+
+        .flicker {
+            animation: flicker 2s infinite;
+        }
+
+        @keyframes flicker {
+            0%, 100% { opacity: 1; text-shadow: 0 0 20px rgba(212, 175, 55, 0.5); }
+            50% { opacity: 0.8; text-shadow: 0 0 10px rgba(212, 175, 55, 0.2); }
+        }
+
+        .card-egyptian {
+            background: rgba(20, 15, 10, 0.6);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            backdrop-filter: blur(10px);
+        }
+
+        .card-egyptian:hover {
+            border-color: var(--gold);
+            transform: translateY(-10px);
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.2);
+        }
+
+        .btn-egyptian {
+            background: linear-gradient(to bottom, #4a3c2a, #2a1f10);
+            border: 1px solid var(--gold);
+            color: var(--gold);
+            transition: all 0.3s ease;
+        }
+
+        .btn-egyptian:hover {
+            background: var(--gold);
+            color: var(--dark);
+            box-shadow: 0 0 15px var(--gold);
+        }
+
+        .era-line {
+            position: relative;
+        }
+
+        .era-line::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+        }
+
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(8px);
+        }
+
+        .stagger-in {
+            animation: staggerIn 0.6s ease-out forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        @keyframes staggerIn {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .cartouche-container {
+            border: 3px solid var(--gold);
+            border-radius: 50px;
+            padding: 15px 40px;
+            position: relative;
+            background: linear-gradient(rgba(212, 175, 55, 0.1), transparent);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
+            margin: 20px 0;
+        }
+
+        .cartouche-container::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 20px;
+            width: 3px;
+            height: 100%;
+            background: var(--gold);
+        }
+
+        /* Scroll Reveal Animation */
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(50px) scale(0.95);
+            transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+            filter: blur(10px);
+        }
+
+        .scroll-reveal.reveal-active {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            filter: blur(0);
+        }
+
+        /* Scroll Top Button */
+        .scroll-top-btn {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            width: 60px;
+            height: 60px;
+            background: rgba(212, 175, 55, 0.15);
+            border: 2px solid var(--gold);
+            border-radius: 50%;
+            color: var(--gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 100;
+            transition: all 0.4s ease;
+            backdrop-filter: blur(10px);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(20px);
+        }
+
+        .scroll-top-btn.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .scroll-top-btn:hover {
+            background: var(--gold);
+            color: var(--dark);
+            box-shadow: 0 0 30px var(--gold);
+            transform: scale(1.1);
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--dark);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--gold);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="hologram-bg"></div>
+    <div class="scanlines"></div>
+    <div id="particles" class="particles"></div>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+        const API_BASE = "/api";
+
+        const ParticleSystem = () => {
+            useEffect(() => {
+                const container = document.getElementById('particles');
+                if (!container) return;
+                container.innerHTML = '';
+                for (let i = 0; i < 60; i++) {
+                    const p = document.createElement('div');
+                    p.className = 'particle';
+                    p.style.left = Math.random() * 100 + 'vw';
+                    p.style.setProperty('--duration', (5 + Math.random() * 10) + 's');
+                    p.style.animationDelay = Math.random() * 5 + 's';
+                    container.appendChild(p);
+                }
+            }, []);
+            return null;
+        };
+
+        const ScrollToTop = () => {
+            const [visible, setVisible] = useState(false);
+
+            useEffect(() => {
+                const handleScroll = () => {
+                    setVisible(window.scrollY > 500);
+                };
+                window.addEventListener('scroll', handleScroll);
+                return () => window.removeEventListener('scroll', handleScroll);
+            }, []);
+
+            const scrollToTop = () => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            };
+
+            return (
+                <button 
+                    onClick={scrollToTop} 
+                    className={`scroll-top-btn ${visible ? 'visible' : ''}`}
+                    title="العودة للأعلى"
+                >
+                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+                    </svg>
+                </button>
+            );
+        };
+
+        const KingCard = ({ king, onSelect }) => {
+            const cardRef = useRef(null);
+
+            useEffect(() => {
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('reveal-active');
+                        }
+                    });
+                }, { threshold: 0.1 });
+
+                if (cardRef.current) observer.observe(cardRef.current);
+                return () => observer.disconnect();
+            }, []);
+
+            return (
+                <div 
+                    ref={cardRef}
+                    className="card-egyptian rounded-3xl overflow-hidden group scroll-reveal"
+                >
+                    <div className="relative h-96 overflow-hidden">
+                        <img src={king.image} alt={king.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-dark via-transparent to-transparent"></div>
+                        <div className="absolute bottom-6 right-6 text-right">
+                            <span className="text-yellow-500 text-sm font-bold uppercase tracking-widest">{king.dynasty}</span>
+                            <h3 className="text-3xl font-bold mt-1" style={{fontFamily: 'Amiri'}}>{king.name}</h3>
+                        </div>
+                    </div>
+                    <div className="p-8 space-y-6">
+                        <p className="text-gray-400 line-clamp-3 leading-relaxed">{king.bio}</p>
+                        <button 
+                            onClick={() => onSelect(king)}
+                            className="w-full py-4 rounded-xl btn-egyptian font-bold text-lg"
+                        >
+                            استكشف التاريخ الملكي
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        const DOCUMENTARIES = [
+            { title: 'سر بناء الأهرامات', id: 'l_O_X01U2tU', thumbnail: 'https://img.youtube.com/vi/l_O_X01U2tU/0.jpg' },
+            { title: 'لعنة الفراعنة: الحقيقة', id: 'v_zL2Fp1y1o', thumbnail: 'https://img.youtube.com/vi/v_zL2Fp1y1o/0.jpg' },
+            { title: 'يوم في حياة مصري قديم', id: 'Z3W_717kIAQ', thumbnail: 'https://img.youtube.com/vi/Z3W_717kIAQ/0.jpg' }
+        ];
+
+        const App = () => {
+            const [selectedEra, setSelectedEra] = useState('all');
+            const [selectedKing, setSelectedKing] = useState(null);
+            const [eras, setEras] = useState([]);
+            const [kings, setKings] = useState([]);
+            const [search, setSearch] = useState('');
+            const [videoModal, setVideoModal] = useState(null);
+            const [loading, setLoading] = useState(true);
+
+            useEffect(() => {
+                fetchData();
+            }, []);
+
+            const fetchData = async () => {
+                try {
+                    setLoading(true);
+                    
+                    const erasRes = await fetch(`${API_BASE}/eras`);
+                    const erasData = await erasRes.json();
+                    setEras(erasData);
+
+                    const kingsRes = await fetch(`${API_BASE}/kings`);
+                    const kingsData = await kingsRes.json();
+                    
+                    const processedKings = kingsData.map(king => ({
+                        ...king,
+                        image: king.image || 'images/placeholder.png'
+                    }));
+
+                    setKings(processedKings);
+                } catch (error) {
+                    console.error("Error fetching museum records:", error);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const filteredKings = kings.filter(k => 
+                (selectedEra === 'all' || k.era === selectedEra) &&
+                ((k.name && k.name.includes(search)) || (k.englishName && k.englishName.toLowerCase().includes(search.toLowerCase())))
+            );
+
+            return (
+                <div className="min-h-screen pb-20">
+                    <ParticleSystem />
+                    <ScrollToTop />
+                    
+                    {/* Hero Section */}
+                    <header className="relative h-[60vh] flex flex-col items-center justify-center text-center px-6">
+                        <div className="z-20 space-y-4">
+                            <h1 className="text-6xl md:text-8xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-b from-yellow-300 to-yellow-600 drop-shadow-lg flicker" style={{fontFamily: 'Amiri'}}>
+                                مكتبة الفراعنة
+                            </h1>
+                            <p className="text-yellow-500/80 text-xl md:text-2xl tracking-[0.4em] uppercase">The Royal Library of Kings</p>
+                            <div className="w-32 h-1 bg-yellow-600 mx-auto mt-6 rounded-full shadow-[0_0_15px_rgba(212,175,55,1)]"></div>
+                        </div>
+                    </header>
+
+                    {loading ? (
+                        <div className="flex flex-col items-center justify-center py-20 space-y-4">
+                            <div className="w-16 h-16 border-4 border-yellow-600 border-t-transparent rounded-full animate-spin"></div>
+                            <p className="text-yellow-600 animate-pulse">جاري تحميل السجلات الملكية...</p>
+                        </div>
+                    ) : (
+                        <main className="max-w-7xl mx-auto px-6 space-y-24">
+                        
+                        {/* Search and Era Filter */}
+                        <section className="stagger-in space-y-12">
+                            <div className="flex flex-col md:flex-row gap-8 items-center justify-between">
+                                <div className="relative w-full md:w-96 group">
+                                    <input 
+                                        type="text" 
+                                        placeholder="ابحث عن ملك..." 
+                                        className="w-full bg-black/40 border-2 border-yellow-600/30 rounded-full py-4 px-12 focus:border-yellow-500 outline-none transition-all text-xl"
+                                        value={search}
+                                        onChange={(e) => setSearch(e.target.value)}
+                                    />
+                                    <svg className="absolute right-4 top-4 w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                </div>
+
+                                <div className="flex flex-wrap justify-center gap-4">
+                                    <button 
+                                        onClick={() => setSelectedEra('all')}
+                                        className={`px-8 py-3 rounded-full border-2 transition-all ${selectedEra === 'all' ? 'bg-yellow-600 border-yellow-500 text-black font-bold' : 'border-yellow-600/30 text-yellow-600 hover:border-yellow-500'}`}
+                                    >الكل</button>
+                                    {eras.map(era => (
+                                        <button 
+                                            key={era.id}
+                                            onClick={() => setSelectedEra(era.id)}
+                                            className={`px-8 py-3 rounded-full border-2 transition-all ${selectedEra === era.id ? 'bg-yellow-600 border-yellow-500 text-black font-bold' : 'border-yellow-600/30 text-yellow-600 hover:border-yellow-500'}`}
+                                        >
+                                            {era.name}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </section>
+
+                        {/* Kings Grid */}
+                        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
+                            {filteredKings.map((king, idx) => (
+                                <KingCard key={king.id} king={king} onSelect={setSelectedKing} />
+                            ))}
+                        </section>
+
+                        {/* Documentaries Section */}
+                        <section className="space-y-12">
+                            <div className="text-center space-y-2">
+                                <h2 className="text-4xl font-bold text-yellow-500" style={{fontFamily: 'Amiri'}}>وثائقيات ملكية</h2>
+                                <p className="text-gray-500 uppercase tracking-[0.2em] text-sm">Historical Documentaries</p>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                                {DOCUMENTARIES.map((doc, idx) => (
+                                    <div key={idx} className="card-egyptian rounded-2xl overflow-hidden group cursor-pointer" onClick={() => setVideoModal(doc.id)}>
+                                        <div className="relative h-48">
+                                            <img src={doc.thumbnail} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" />
+                                            <div className="absolute inset-0 flex items-center justify-center">
+                                                <div className="w-16 h-16 bg-yellow-600 rounded-full flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform">
+                                                    <svg className="w-8 h-8 text-black" fill="currentColor" viewBox="0 0 20 20"><path d="M4.5 3.5v13l11-6.5-11-6.5z"/></svg>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="p-6">
+                                            <h4 className="text-xl font-bold text-center">{doc.title}</h4>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                    </main>
+                    )}
+
+                    {/* King Detail Modal */}
+                    {selectedKing && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay">
+                            <div className="bg-[#0a0f1a] border-2 border-yellow-600/50 w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl relative shadow-[0_0_100px_rgba(212,175,55,0.2)]">
+                                <button 
+                                    onClick={() => setSelectedKing(null)}
+                                    className="absolute left-6 top-6 z-10 p-2 bg-black/50 rounded-full hover:bg-yellow-600 transition-colors"
+                                >
+                                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </button>
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-2">
+                                    <div className="h-[40vh] md:h-full">
+                                        <img src={selectedKing.image} className="w-full h-full object-cover" />
+                                    </div>
+                                    <div className="p-8 md:p-12 space-y-8">
+                                        <div>
+                                            <span className="text-yellow-500 font-bold uppercase tracking-widest">{selectedKing.dynasty} | {selectedKing.reign}</span>
+                                            <h2 className="text-5xl font-bold mt-2" style={{fontFamily: 'Amiri'}}>{selectedKing.name}</h2>
+                                            <p className="text-yellow-500/60 text-xl tracking-widest">{selectedKing.englishName}</p>
+                                        </div>
+
+                                        <div className="flex flex-col items-center justify-center">
+                                            <span className="text-yellow-600 text-xs uppercase tracking-widest mb-2">الخرطوش الملكي • Royal Cartouche</span>
+                                            <div className="cartouche-container">
+                                                <span className="text-6xl hieroglyph-font text-transparent bg-clip-text bg-gradient-to-b from-yellow-200 to-yellow-600">
+                                                    {selectedKing.cartouche}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            <h4 className="text-yellow-500 font-bold border-r-4 border-yellow-600 pr-4">السيرة الذاتية</h4>
+                                            <p className="text-gray-300 leading-relaxed text-lg">{selectedKing.bio}</p>
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            <h4 className="text-yellow-500 font-bold border-r-4 border-yellow-600 pr-4">أهم الإنجازات</h4>
+                                            <ul className="grid grid-cols-1 gap-3">
+                                                {(selectedKing.achievements || "").split('\n').filter(a => a.trim()).map((ach, i) => (
+                                                    <li key={i} className="flex items-center gap-3 text-gray-400">
+                                                        <span className="w-2 h-2 bg-yellow-600 rounded-full"></span>
+                                                        {ach}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+
+                                        <button 
+                                            onClick={() => setVideoModal(selectedKing.docId)}
+                                            className="w-full py-4 rounded-xl btn-egyptian flex items-center justify-center gap-3 font-bold"
+                                        >
+                                            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.5 9a.5.5 0 000 1h2a.5.5 0 000-1h-2z"/></svg>
+                                            مشاهدة وثائقي خاص
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Video Modal */}
+                    {videoModal && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-filter blur-md">
+                            <div className="w-full max-w-5xl aspect-video relative">
+                                <button 
+                                    onClick={() => setVideoModal(null)}
+                                    className="absolute -top-12 right-0 text-white hover:text-yellow-500 transition-colors"
+                                >
+                                    <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </button>
+                                <iframe 
+                                    className="w-full h-full rounded-2xl shadow-2xl"
+                                    src={`https://www.youtube.com/embed/${videoModal}?autoplay=1`}
+                                    frameBorder="0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                ></iframe>
+                            </div>
+                        </div>
+                    )}
+
+                    <footer className="mt-20 border-t border-yellow-600/20 py-12 text-center space-y-6">
+                        <div className="flex justify-center gap-8">
+                            <a href="index.html" className="text-yellow-600 hover:text-yellow-500 transition-colors uppercase tracking-widest text-sm">الرئيسية</a>
+                            <a href="hieroglyphics.html" className="text-yellow-600 hover:text-yellow-500 transition-colors uppercase tracking-widest text-sm">كاتب الهيروغليفية</a>
+                        </div>
+                        <p className="text-yellow-600/40 text-xs uppercase tracking-[0.5em]">Holographic Ancient Arts • Library of Kings</p>
+                    </footer>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>متحف الحضارة المصرية | رحلة عبر الزمن</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Amiri:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #D4AF37;
+            --gold-light: #FFD700;
+            --cyan: #00d4ff;
+            --dark: #050a14;
+        }
+
+        body {
+            background-color: var(--dark);
+            font-family: 'Cairo', sans-serif;
+            color: white;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        .hologram-bg {
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?q=80&w=2070');
+            background-size: cover;
+            background-position: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+        }
+
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            background-size: 100% 4px, 3px 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .flicker {
+            animation: flicker 0.15s infinite;
+        }
+
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.95; }
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            border-color: var(--gold);
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.2);
+            transform: translateY(-5px);
+        }
+
+        .btn-royal {
+            background: linear-gradient(135deg, #4a3c2a 0%, #2a1f10 100%);
+            border: 1px solid var(--gold);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s ease;
+        }
+
+        .btn-royal::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: 0.5s;
+        }
+
+        .btn-royal:hover::before {
+            left: 100%;
+        }
+
+        .btn-royal:hover {
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+            transform: scale(1.05);
+            color: var(--gold-light);
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="hologram-bg"></div>
+    <div class="scanlines"></div>
+
+    <main class="relative z-20 flex flex-col items-center justify-center min-h-screen px-6 py-20">
+        <header class="text-center mb-16 space-y-4">
+            <h1 class="text-6xl md:text-8xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-yellow-200 to-yellow-600 drop-shadow-[0_0_30px_rgba(212,175,55,0.4)] flicker" style="font-family: 'Amiri'">
+                المتحف المصري الافتراضي
+            </h1>
+            <p class="text-xl md:text-2xl text-yellow-500/80 tracking-[0.2em] font-light">
+                جولة تفاعلية مع المرشد الملكي <span class="text-yellow-400 font-bold">حورس</span>
+            </p>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl mb-16">
+            <div class="glass-card p-8 rounded-2xl text-center">
+                <div class="text-4xl mb-4 text-yellow-500">𓉐</div>
+                <h3 class="text-2xl font-bold text-yellow-500 mb-2">بيئة 3D واقعية</h3>
+                <p class="text-gray-400">استكشف الآثار بدقة عالية داخل متصفحك وكأنك هناك.</p>
+            </div>
+            <div class="glass-card p-8 rounded-2xl text-center">
+                <div class="text-4xl mb-4 text-yellow-500">𓁟</div>
+                <h3 class="text-2xl font-bold text-yellow-500 mb-2">مرشد ذكي</h3>
+                <p class="text-gray-400">تحدث مع حورس مباشرة واسأله عن أسرار الفراعنة وتاريخهم العريق.</p>
+            </div>
+        </div>
+
+        <div class="flex flex-wrap justify-center gap-6">
+            <a href="game.html" class="btn-royal px-12 py-5 rounded-full text-xl font-bold text-yellow-500">
+                ابدأ التجربة الآن
+            </a>
+            <a href="library.html" class="btn-royal px-12 py-5 rounded-full text-xl font-bold text-yellow-500">
+                مكتبة الفراعنة
+            </a>
+            <a href="hieroglyphics.html" class="btn-royal px-12 py-5 rounded-full text-xl font-bold text-yellow-500">
+                اسمك بالهيروغليفية
+            </a>
+        </div>
+    </main>
+
+    <footer class="fixed bottom-8 w-full text-center text-yellow-600/30 text-xs tracking-[1em] uppercase">
+        Virtual Egyptian Museum Experience
+    </footer>
+
+    <script>
+        // Simple animation trigger for cards
+        document.querySelectorAll('.glass-card').forEach((card, i) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                card.style.transition = 'all 0.8s cubic-bezier(0.17, 0.55, 0.55, 1)';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, 300 + (i * 200));
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+.git
+.agents
+.gemini
+node_modules
+Dockerfile
+compose.yml
+README.md
+*.md
