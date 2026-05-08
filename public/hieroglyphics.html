@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اكتب اسمك بالهيروغليفية | المتحف المصري</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Amiri:wght@700&family=Noto+Sans+Egyptian+Hieroglyphs&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --gold: #D4AF37;
+            --gold-light: #FFD700;
+            --cyan: #00d4ff;
+            --dark: #050a14;
+            --sandstone: #c2b280;
+        }
+
+        body {
+            background-color: var(--dark);
+            font-family: 'Cairo', sans-serif;
+            color: white;
+            margin: 0;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+        .hieroglyph-font {
+            font-family: 'Noto Sans Egyptian Hieroglyphs', sans-serif;
+        }
+
+        .hologram-bg {
+            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('images/egyptian_temple_holographic_bg_1778194002891.png');
+            background-size: cover;
+            background-position: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+        }
+
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            background-size: 100% 4px, 3px 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: var(--gold);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: drift var(--duration) linear infinite;
+        }
+
+        @keyframes drift {
+            from { transform: translateY(100vh) translateX(0); opacity: 0; }
+            50% { opacity: 0.5; }
+            to { transform: translateY(-10vh) translateX(50px); opacity: 0; }
+        }
+
+        .glyph-item {
+            font-size: 85px;
+            background: linear-gradient(135deg, var(--gold-light) 0%, #ffffff 50%, var(--cyan) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 12px rgba(212, 175, 55, 0.8));
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            line-height: 1;
+            display: inline-block;
+        }
+
+        .glyph-item:hover {
+            transform: scale(1.2) rotate(5deg);
+            filter: drop-shadow(0 0 25px rgba(212, 175, 55, 1));
+        }
+
+        .cartouche-container {
+            position: relative;
+            padding: 50px 80px;
+            border: 8px double var(--gold);
+            border-radius: 120px;
+            background: rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 80px rgba(212, 175, 55, 0.3), inset 0 0 50px rgba(212, 175, 55, 0.1);
+        }
+
+        .cartouche-container::before {
+            content: '';
+            position: absolute;
+            left: 20px;
+            top: 25%;
+            bottom: 25%;
+            width: 6px;
+            background: var(--gold);
+            border-radius: 10px;
+            box-shadow: 0 0 15px var(--gold);
+        }
+
+        .input-papyrus {
+            background: rgba(20, 15, 10, 0.8);
+            border: 2px solid var(--gold);
+            color: var(--gold-light);
+            text-align: center;
+            font-size: 24px;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .input-papyrus:focus {
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+            border-color: var(--gold-light);
+            outline: none;
+        }
+
+        .btn-egyptian {
+            background: linear-gradient(to bottom, #4a3c2a, #2a1f10);
+            border: 1px solid var(--gold);
+            color: var(--gold);
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-egyptian:hover {
+            background: linear-gradient(to bottom, #5a4c3a, #3a2f20);
+            color: var(--gold-light);
+            box-shadow: 0 0 15px var(--gold);
+        }
+
+        .flicker {
+            animation: flicker 0.15s infinite;
+        }
+
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.9; }
+        }
+
+        .stagger-in {
+            animation: staggerIn 0.5s ease-out forwards;
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        @keyframes staggerIn {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media print {
+            .no-print { display: none; }
+            body { background: white; color: black; }
+            .cartouche-container { border: 4px solid black; background: white; border-radius: 80px; box-shadow: none; }
+            .glyph-item { -webkit-text-fill-color: black !important; filter: none; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="hologram-bg"></div>
+    <div class="scanlines"></div>
+    <div id="particles" class="particles"></div>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        const ParticleSystem = () => {
+            useEffect(() => {
+                const container = document.getElementById('particles');
+                if (!container) return;
+                container.innerHTML = '';
+                for (let i = 0; i < 60; i++) {
+                    const p = document.createElement('div');
+                    p.className = 'particle';
+                    p.style.left = Math.random() * 100 + 'vw';
+                    p.style.setProperty('--duration', (5 + Math.random() * 10) + 's');
+                    p.style.animationDelay = Math.random() * 5 + 's';
+                    container.appendChild(p);
+                }
+            }, []);
+            return null;
+        };
+
+        const GLYPH_DATA = {
+            'A': { char: '𓄿', name: 'عقاب (Vulture)' },
+            'B': { char: '𓃀', name: 'قدم (Leg)' },
+            'C': { char: '𓎡', name: 'سلة (Basket)' },
+            'D': { char: '𓂧', name: 'يد (Hand)' },
+            'E': { char: '𓇋', name: 'ريشة (Reed)' },
+            'F': { char: '𓆑', name: 'حية (Viper)' },
+            'G': { char: '𓎼', name: 'حامل (Stand)' },
+            'H': { char: '𓉔', name: 'فناء (Shelter)' },
+            'I': { char: '𓇋', name: 'ريشة (Reed)' },
+            'J': { char: '𓆙', name: 'كوبرا (Cobra)' },
+            'K': { char: '𓎡', name: 'سلة (Basket)' },
+            'L': { char: '𓃭', name: 'أسد (Lion)' },
+            'M': { char: '𓅓', name: 'بومة (Owl)' },
+            'N': { char: '𓈖', name: 'موجة (Water)' },
+            'O': { char: '𓅱', name: 'فرخ (Chick)' },
+            'P': { char: '𓊪', name: 'مقعد (Stool)' },
+            'Q': { char: '𓈎', name: 'تلة (Hill)' },
+            'R': { char: '𓂋', name: 'فم (Mouth)' },
+            'S': { char: '𓋴', name: 'منديل (Cloth)' },
+            'T': { char: '𓏏', name: 'رغيف (Loaf)' },
+            'U': { char: '𓅲', name: 'فرخ (Chick)' },
+            'V': { char: '𓆑', name: 'حية (Viper)' },
+            'W': { char: '𓅱', name: 'فرخ (Chick)' },
+            'X': { char: '𓎡𓋴', name: 'سلة ومنديل' },
+            'Y': { char: '𓇌', name: 'ريشتان (Reeds)' },
+            'Z': { char: '𓊃', name: 'مزلاج (Bolt)' },
+        };
+
+        const Cartouche = ({ children }) => (
+            <div className="cartouche-container flex items-center justify-center min-w-[350px] transition-all duration-700">
+                <div className="flex flex-wrap justify-center gap-8 hieroglyph-font">
+                    {children}
+                </div>
+            </div>
+        );
+
+        const Glyph = ({ letter, index }) => {
+            const char = letter.toUpperCase();
+            const glyph = GLYPH_DATA[char] || GLYPH_DATA['A'];
+            return (
+                <div className="flex flex-col items-center gap-3 group stagger-in" style={{ animationDelay: `${index * 0.1}s` }}>
+                    <span className="glyph-item">
+                        {glyph.char}
+                    </span>
+                    <span className="text-[14px] text-yellow-500/60 opacity-0 group-hover:opacity-100 transition-opacity font-bold">
+                        {glyph.name}
+                    </span>
+                </div>
+            );
+        };
+
+        const HieroglyphicsApp = () => {
+            const [name, setName] = useState('');
+            const captureRef = useRef(null);
+
+            const downloadImage = async () => {
+                if (!captureRef.current) return;
+                
+                // Ensure fonts are loaded
+                await document.fonts.ready;
+                
+                // Temporary remove animations and ensure visibility
+                const elements = captureRef.current.querySelectorAll('.stagger-in');
+                elements.forEach(el => {
+                    el.style.animation = 'none';
+                    el.style.opacity = '1';
+                    el.style.transform = 'none';
+                });
+
+                try {
+                    const canvas = await html2canvas(captureRef.current, {
+                        backgroundColor: '#050a14',
+                        scale: 3, // Higher scale for better quality
+                        useCORS: true, // Allow cross-origin images/fonts
+                        logging: false,
+                        allowTaint: true
+                    });
+                    
+                    const link = document.createElement('a');
+                    link.download = `royal_name_${name}.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                } catch (err) {
+                    console.error('Download failed:', err);
+                    alert('عذراً، حدث خطأ أثناء التحميل. يرجى المحاولة مرة أخرى.');
+                } finally {
+                    // Restore animations
+                    elements.forEach(el => {
+                        el.style.animation = '';
+                        el.style.opacity = '';
+                        el.style.transform = '';
+                    });
+                }
+            };
+
+            return (
+                <div className="min-h-screen flex flex-col items-center justify-start py-16 px-6 gap-12">
+                    <ParticleSystem />
+                    
+                    <div className="text-center space-y-4 no-print relative z-20">
+                        <h1 className="text-5xl md:text-7xl font-bold tracking-[0.2em] text-transparent bg-clip-text bg-gradient-to-b from-yellow-300 to-yellow-600 drop-shadow-[0_0_20px_rgba(212,175,55,0.5)] flicker" style={{fontFamily: 'Amiri'}}>
+                            مُحرر الخراطيش الملكية
+                        </h1>
+                        <p className="text-yellow-500/80 text-xl tracking-[0.3em] uppercase">Royal Cartouche Editor</p>
+                    </div>
+
+                    <div className="w-full max-w-5xl flex flex-col items-center gap-12 relative z-20">
+                        <div id="capture-area" ref={captureRef} className="p-12">
+                            <Cartouche>
+                                {name.split('').map((char, index) => (
+                                    /^[a-zA-Z]$/.test(char) ? <Glyph key={index} letter={char} index={index} /> : null
+                                ))}
+                            </Cartouche>
+                        </div>
+
+                        <div className="w-full max-w-2xl space-y-8 no-print">
+                            <div className="space-y-4">
+                                <label className="block text-yellow-500 text-center uppercase tracking-widest text-sm font-bold">أدخل اسمك بالإنجليزية • Enter Name in English</label>
+                                <input 
+                                    type="text" 
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value.toLowerCase().replace(/[^a-z]/g, ''))}
+                                    className="w-full p-6 rounded-xl input-papyrus border-2 border-yellow-600/50"
+                                    placeholder="TYPE YOUR NAME..."
+                                    maxLength="15"
+                                />
+                            </div>
+
+                            <div className="flex flex-wrap justify-center gap-6">
+                                <button onClick={downloadImage} className="px-10 py-4 rounded-lg btn-egyptian flex items-center gap-3">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                    تحميل • Download
+                                </button>
+                                <button onClick={() => window.print()} className="px-10 py-4 rounded-lg btn-egyptian flex items-center gap-3">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                                    طباعة • Print
+                                </button>
+                                <a href="index.html" className="px-10 py-4 rounded-lg btn-egyptian flex items-center gap-3 no-underline">
+                                    العودة • Back to Museum
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div className="fixed bottom-4 text-yellow-600/40 text-[10px] uppercase tracking-[1em] w-full text-center no-print">
+                        Holographic Ancient Arts • Virtual Egyptian Museum
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<HieroglyphicsApp />);
+    </script>
+</body>
+
+</html>

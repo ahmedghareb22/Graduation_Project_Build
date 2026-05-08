@@ -1,0 +1,18 @@
+services:
+  museum:
+    build: .
+    container_name: egyptian-museum-app
+    ports:
+      - "8080:80"
+    volumes:
+      - ./public:/usr/share/nginx/html
+    restart: always
+
+  museum-backend:
+    build: ./backend
+    container_name: museum-backend
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend:/app
+    restart: always

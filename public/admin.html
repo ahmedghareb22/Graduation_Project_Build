@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم الملكية | Royal Admin Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #c5a059;
+            --dark-gold: #8e6d2f;
+            --hologram: #00f2ff;
+        }
+        body {
+            font-family: 'Inter', 'Amiri', sans-serif;
+            background: radial-gradient(circle at center, #1a1a1a 0%, #0a0a0a 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .gold-gradient {
+            background: linear-gradient(135deg, var(--gold), var(--dark-gold));
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(197, 160, 89, 0.2);
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div id="root"></div>
+
+    <!-- React and Dependencies -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const API_BASE = "/api";
+
+        function AdminPanel() {
+            const [view, setView] = useState('kings');
+            const [eras, setEras] = useState([]);
+            const [kings, setKings] = useState([]);
+            const [loading, setLoading] = useState(true);
+
+            // Form States
+            const [newEra, setNewEra] = useState({ name: '', years: '' });
+            const [newKing, setNewKing] = useState({
+                name: '', englishName: '', dynasty: '', reign: '',
+                bio: '', achievements: '', cartouche: '', docId: '',
+                era_id: '', image: null
+            });
+
+            useEffect(() => {
+                fetchData();
+            }, []);
+
+            const fetchData = async () => {
+                setLoading(true);
+                try {
+                    const erasRes = await fetch(`${API_BASE}/eras`);
+                    const erasData = await erasRes.json();
+                    setEras(erasData);
+
+                    const kingsRes = await fetch(`${API_BASE}/kings`);
+                    const kingsData = await kingsRes.json();
+                    setKings(kingsData);
+                } catch (err) {
+                    console.error("Error fetching data:", err);
+                }
+                setLoading(false);
+            };
+
+            const addEra = async (e) => {
+                e.preventDefault();
+                await fetch(`${API_BASE}/eras`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newEra)
+                });
+                setNewEra({ name: '', years: '' });
+                fetchData();
+            };
+
+            const addKing = async (e) => {
+                e.preventDefault();
+                const formData = new FormData();
+                Object.keys(newKing).forEach(key => {
+                    formData.append(key, newKing[key]);
+                });
+
+                await fetch(`${API_BASE}/kings`, {
+                    method: 'POST',
+                    body: formData
+                });
+                setNewKing({
+                    name: '', englishName: '', dynasty: '', reign: '',
+                    bio: '', achievements: '', cartouche: '', docId: '',
+                    era_id: '', image: null
+                });
+                fetchData();
+            };
+
+            const deleteKing = async (id) => {
+                if(confirm('هل أنت متأكد من حذف هذا السجل الملكي؟')) {
+                    await fetch(`${API_BASE}/delete/king/${id}`, { method: 'DELETE' });
+                    fetchData();
+                }
+            };
+
+            return (
+                <div className="max-w-6xl mx-auto">
+                    <header className="flex justify-between items-center mb-12 border-b border-yellow-600/30 pb-6">
+                        <div>
+                            <h1 className="text-4xl font-bold gold-gradient bg-clip-text text-transparent" style={{fontFamily: 'Cinzel'}}>THE ROYAL ARCHIVE</h1>
+                            <p className="text-gray-400 mt-2">إدارة السجلات التاريخية للمتحف</p>
+                        </div>
+                        <nav className="flex gap-4">
+                            <button onClick={() => setView('kings')} className={`px-6 py-2 rounded-full transition ${view === 'kings' ? 'gold-gradient text-black font-bold' : 'glass hover:bg-white/10'}`}>الملوك</button>
+                            <button onClick={() => setView('eras')} className={`px-6 py-2 rounded-full transition ${view === 'eras' ? 'gold-gradient text-black font-bold' : 'glass hover:bg-white/10'}`}>العصور</button>
+                        </nav>
+                    </header>
+
+                    {view === 'eras' ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className="glass p-6 rounded-2xl">
+                                <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
+                                    إضافة عصر جديد
+                                </h2>
+                                <form onSubmit={addEra} className="space-y-4">
+                                    <input value={newEra.name} onChange={e => setNewEra({...newEra, name: e.target.value})} placeholder="اسم العصر (مثال: الدولة الحديثة)" className="w-full bg-black/40 border border-white/10 p-3 rounded-lg focus:border-yellow-600 outline-none" required />
+                                    <input value={newEra.years} onChange={e => setNewEra({...newEra, years: e.target.value})} placeholder="الفترة الزمنية (مثال: 1550-1069 ق.م)" className="w-full bg-black/40 border border-white/10 p-3 rounded-lg focus:border-yellow-600 outline-none" />
+                                    <button className="w-full gold-gradient text-black font-bold py-3 rounded-lg hover:opacity-90 transition">حفظ العصر</button>
+                                </form>
+                            </div>
+                            <div className="glass p-6 rounded-2xl">
+                                <h2 className="text-xl font-bold mb-6">قائمة العصور</h2>
+                                <div className="space-y-3">
+                                    {eras.map(era => (
+                                        <div key={era.id} className="flex justify-between items-center p-4 bg-white/5 rounded-xl border border-white/5">
+                                            <div>
+                                                <p className="font-bold text-yellow-500">{era.name}</p>
+                                                <p className="text-xs text-gray-400">{era.years}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            <div className="lg:col-span-1 glass p-6 rounded-2xl h-fit">
+                                <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
+                                    إضافة ملك جديد
+                                </h2>
+                                <form onSubmit={addKing} className="space-y-4 text-sm">
+                                    <input value={newKing.name} onChange={e => setNewKing({...newKing, name: e.target.value})} placeholder="الاسم بالعربي" className="w-full bg-black/40 border border-white/10 p-3 rounded-lg outline-none" required />
+                                    <input value={newKing.englishName} onChange={e => setNewKing({...newKing, englishName: e.target.value})} placeholder="English Name" className="w-full bg-black/40 border border-white/10 p-3 rounded-lg outline-none" />
+                                    <select value={newKing.era_id} onChange={e => setNewKing({...newKing, era_id: e.target.value})} className="w-full bg-black/40 border border-white/10 p-3 rounded-lg outline-none" required>
+                                        <option value="">اختر العصر</option>
+                                        {eras.map(era => <option key={era.id} value={era.id}>{era.name}</option>)}
+                                    </select>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <input value={newKing.dynasty} onChange={e => setNewKing({...newKing, dynasty: e.target.value})} placeholder="الأسرة" className="bg-black/40 border border-white/10 p-3 rounded-lg outline-none" />
+                                        <input value={newKing.reign} onChange={e => setNewKing({...newKing, reign: e.target.value})} placeholder="سنوات الحكم" className="bg-black/40 border border-white/10 p-3 rounded-lg outline-none" />
+                                    </div>
+                                    <textarea value={newKing.bio} onChange={e => setNewKing({...newKing, bio: e.target.value})} placeholder="السيرة الذاتية" className="w-full bg-black/40 border border-white/10 p-3 rounded-lg outline-none h-24" />
+                                    <input value={newKing.cartouche} onChange={e => setNewKing({...newKing, cartouche: e.target.value})} placeholder="الخرطوش (هيروغليفي)" className="w-full bg-black/40 border border-white/10 p-3 rounded-lg outline-none" />
+                                    <input value={newKing.docId} onChange={e => setNewKing({...newKing, docId: e.target.value})} placeholder="YouTube Video ID" className="w-full bg-black/40 border border-white/10 p-3 rounded-lg outline-none" />
+                                    <div className="border-2 border-dashed border-white/10 p-4 rounded-lg text-center hover:border-yellow-600/50 transition">
+                                        <input type="file" onChange={e => setNewKing({...newKing, image: e.target.files[0]})} className="hidden" id="img-upload" />
+                                        <label htmlFor="img-upload" className="cursor-pointer text-gray-400">
+                                            {newKing.image ? newKing.image.name : 'اختر صورة الملك'}
+                                        </label>
+                                    </div>
+                                    <button className="w-full gold-gradient text-black font-bold py-3 rounded-lg hover:opacity-90 transition">تسجيل الملك</button>
+                                </form>
+                            </div>
+                            <div className="lg:col-span-2 space-y-4">
+                                <h2 className="text-xl font-bold mb-4">السجلات الحالية ({kings.length})</h2>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {kings.map(king => (
+                                        <div key={king.id} className="glass p-4 rounded-xl flex gap-4 items-center group relative overflow-hidden">
+                                            <div className="w-20 h-20 rounded-lg overflow-hidden bg-black/50 border border-white/10 shrink-0">
+                                                {king.image && <img src={king.image} className="w-full h-full object-cover" />}
+                                            </div>
+                                            <div className="flex-1">
+                                                <h3 className="font-bold text-yellow-500 text-lg">{king.name}</h3>
+                                                <p className="text-xs text-gray-400 uppercase tracking-tighter">{king.englishName}</p>
+                                                <p className="text-[10px] text-yellow-600 mt-1">{king.dynasty} | {king.reign}</p>
+                                            </div>
+                                            <button onClick={() => deleteKing(king.id)} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition opacity-0 group-hover:opacity-100">
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<AdminPanel />);
+    </script>
+</body>
+</html>
